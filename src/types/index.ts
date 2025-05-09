@@ -41,3 +41,20 @@ export type BidStatus = {
   reason?: string;
 };
 
+// User auth types
+export type UserRole = 'player' | 'team-owner' | 'admin';
+
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  teamId?: string; // For team owners
+  playerId?: string; // For players
+};
+
+export type AuthState = {
+  isAuthenticated: boolean;
+  user: User | null;
+  isLoading: boolean;
+};

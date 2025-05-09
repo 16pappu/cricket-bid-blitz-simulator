@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../utils/formatters';
 import { Check } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BidControlsProps {
   currentBid: number;
@@ -20,10 +21,28 @@ const BidControls: React.FC<BidControlsProps> = ({
   onPass
 }) => {
   const nextBidAmount = currentBid + minBidIncrement;
-
+  const { authState } = useAuth();
+  const { isAuthenticated, user } = authState;
+  
   const handleBid = () => {
     onPlaceBid(nextBidAmount);
   };
+
+  // If not authenticated or not a team owner, show login prompt
+  if (!isAuthenticated || user?.role !== 'team-owner') {
+    return (
+      <div className="bg-gray-100 p-4 rounded-md text-center">
+        <p className="mb-3 text-gray-600">
+          {!isAuthenticated 
+            ? 'You need to login as a team owner to place bids' 
+            : 'Only team owners can place bids'}
+        </p>
+        <Button asChild className="bg-cricket-green hover:bg-cricket-green/90">
+          <a href="/auth">Login / Register</a>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
