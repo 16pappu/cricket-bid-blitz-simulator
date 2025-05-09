@@ -34,3 +34,10 @@ export type BidHistory = {
   amount: number;
   timestamp: Date;
 };
+
+export type BidStatus = {
+  isActive: boolean;
+  canBid: boolean;
+  reason?: string;
+};
+

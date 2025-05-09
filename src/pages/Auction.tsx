@@ -8,6 +8,7 @@ import TeamBudget from '@/components/TeamBudget';
 import { Player, Team } from '@/types';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Auction = () => {
   const [teams, setTeams] = useState(mockTeams);
@@ -100,24 +101,53 @@ const Auction = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Live Auction</h1>
           <p className="text-gray-600">
-            Experience the thrill of a real-time cricket auction. Bid on players, manage your budget,
-            and build your dream team.
+            Experience the thrill of a real-time cricket auction. All registered teams can bid on players,
+            manage their budgets, and build their dream teams.
           </p>
         </div>
         
         {!auctionStarted ? (
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-bold mb-4">Ready to start the auction?</h2>
-            <p className="text-gray-600 mb-6">
-              {availablePlayers.length} players available for auction
-            </p>
-            <Button 
-              size="lg" 
-              className="bg-cricket-blue text-white"
-              onClick={startAuction}
-            >
-              Start Auction
-            </Button>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Start the Auction</CardTitle>
+                <CardDescription>
+                  {availablePlayers.length} players available for bidding
+                </CardDescription>
+              </CardHeader>
+              <div className="p-6">
+                <Button 
+                  size="lg" 
+                  className="bg-cricket-blue text-white"
+                  onClick={startAuction}
+                >
+                  Start Auction
+                </Button>
+              </div>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>How It Works</CardTitle>
+                <CardDescription>
+                  Open bidding for all registered teams
+                </CardDescription>
+              </CardHeader>
+              <div className="p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-cricket-blue/10 text-cricket-blue rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0">1</div>
+                  <p>Any registered team can bid on available players</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-cricket-blue/10 text-cricket-blue rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0">2</div>
+                  <p>Teams take turns to place bids or pass</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-cricket-blue/10 text-cricket-blue rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0">3</div>
+                  <p>Players are sold to the highest bidder when the timer runs out</p>
+                </div>
+              </div>
+            </Card>
           </div>
         ) : (
           <>

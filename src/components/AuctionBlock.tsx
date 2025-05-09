@@ -6,6 +6,7 @@ import BidControls from './BidControls';
 import CountdownTimer from './CountdownTimer';
 import BidHistoryComponent from './BidHistory';
 import { Card, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
 
 interface AuctionBlockProps {
   player: Player;
@@ -36,6 +37,7 @@ const AuctionBlock: React.FC<AuctionBlockProps> = ({
 
   const minBidIncrement = currentBid < 1000000 ? 100000 : 200000;
 
+  // Determine if the active team can bid
   const canBid = (activeTeam?.budget || 0) >= (currentBid + minBidIncrement);
 
   const handlePlaceBid = (bidAmount: number) => {
@@ -68,7 +70,12 @@ const AuctionBlock: React.FC<AuctionBlockProps> = ({
   return (
     <Card className="overflow-hidden">
       <div className="bg-cricket-blue text-white px-6 py-3 flex justify-between items-center">
-        <h2 className="text-xl font-bold">Current Auction</h2>
+        <div className="flex items-center space-x-2">
+          <h2 className="text-xl font-bold">Current Auction</h2>
+          <Badge variant="outline" className="bg-white/10 text-white border-white/20">
+            Any Registered Team Can Bid
+          </Badge>
+        </div>
         {isSold ? (
           <span className="bg-cricket-gold text-cricket-navy text-sm font-bold px-3 py-1 rounded-full">
             SOLD!
@@ -146,7 +153,7 @@ const AuctionBlock: React.FC<AuctionBlockProps> = ({
               <div className="text-sm mb-2">
                 {activeTeam ? (
                   <>
-                    <span className="font-semibold">{activeTeam.name}</span>
+                    <span className="font-semibold">{activeTeam.name}'s Turn to Bid</span>
                     <span className="text-gray-500 ml-2">
                       (Budget: {formatCurrency(activeTeam.budget)})
                     </span>

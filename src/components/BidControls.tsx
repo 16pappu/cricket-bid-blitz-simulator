@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../utils/formatters';
+import { Check } from 'lucide-react';
 
 interface BidControlsProps {
   currentBid: number;
@@ -29,8 +30,9 @@ const BidControls: React.FC<BidControlsProps> = ({
       <Button 
         onClick={handleBid}
         disabled={!canBid}
-        className="bg-cricket-green hover:bg-cricket-green/90 text-white h-12 px-6"
+        className="bg-cricket-green hover:bg-cricket-green/90 text-white h-12 px-6 flex items-center justify-center"
       >
+        <Check className="mr-2 h-4 w-4" />
         Bid {formatCurrency(nextBidAmount)}
       </Button>
       <Button 
@@ -40,6 +42,11 @@ const BidControls: React.FC<BidControlsProps> = ({
       >
         Pass
       </Button>
+      {!canBid && (
+        <div className="text-sm text-cricket-red italic">
+          Insufficient budget to place this bid
+        </div>
+      )}
     </div>
   );
 };
