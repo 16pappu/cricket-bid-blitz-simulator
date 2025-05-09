@@ -7,6 +7,8 @@ import CountdownTimer from './CountdownTimer';
 import BidHistoryComponent from './BidHistory';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { Shield } from 'lucide-react';
 
 interface AuctionBlockProps {
   player: Player;
@@ -32,13 +34,17 @@ const AuctionBlock: React.FC<AuctionBlockProps> = ({
   const [bidHistory, setBidHistory] = useState<BidHistory[]>([]);
   const [isSold, setIsSold] = useState(false);
 
+  const { authState } = useAuth();
+  const { user } = authState;
+
   const activeTeam = teams.find(team => team.id === activeTeamId);
   const highestBidderTeam = teams.find(team => team.id === highestBidderTeamId);
+  const isUsersTurn = user?.teamId === activeTeamId;
 
   const minBidIncrement = currentBid < 1000000 ? 100000 : 200000;
 
   // Determine if the active team can bid
-  const canBid = (activeTeam?.budget || 0) >= (currentBid + minBidIncrement);
+  const canBid = (activeTeam?.budget || 0) >= (currentBid + minBidIncrement) && isUsersTurn;
 
   const handlePlaceBid = (bidAmount: number) => {
     if (!activeTeam) return;
@@ -73,7 +79,7 @@ const AuctionBlock: React.FC<AuctionBlockProps> = ({
         <div className="flex items-center space-x-2">
           <h2 className="text-xl font-bold">Current Auction</h2>
           <Badge variant="outline" className="bg-white/10 text-white border-white/20">
-            Any Registered Team Can Bid
+            Registered Teams Only
           </Badge>
         </div>
         {isSold ? (
@@ -153,8 +159,15 @@ const AuctionBlock: React.FC<AuctionBlockProps> = ({
               <div className="text-sm mb-2">
                 {activeTeam ? (
                   <>
-                    <span className="font-semibold">{activeTeam.name}'s Turn to Bid</span>
-                    <span className="text-gray-500 ml-2">
+                    <div className="flex items-center">
+                      <span className="font-semibold">{activeTeam.name}'s Turn to Bid</span>
+                      {isUsersTurn && (
+                        <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-200">
+                          <Shield className="w-3 h-3 mr-1" /> Your Turn
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-gray-500">
                       (Budget: {formatCurrency(activeTeam.budget)})
                     </span>
                   </>

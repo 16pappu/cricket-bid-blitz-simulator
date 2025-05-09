@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { formatCurrency } from '../utils/formatters';
 import { Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface BidControlsProps {
   currentBid: number;
@@ -23,6 +24,7 @@ const BidControls: React.FC<BidControlsProps> = ({
   const nextBidAmount = currentBid + minBidIncrement;
   const { authState } = useAuth();
   const { isAuthenticated, user } = authState;
+  const navigate = useNavigate();
   
   const handleBid = () => {
     onPlaceBid(nextBidAmount);
@@ -37,8 +39,11 @@ const BidControls: React.FC<BidControlsProps> = ({
             ? 'You need to login as a team owner to place bids' 
             : 'Only team owners can place bids'}
         </p>
-        <Button asChild className="bg-cricket-green hover:bg-cricket-green/90">
-          <a href="/auth">Login / Register</a>
+        <Button 
+          onClick={() => navigate('/auth')} 
+          className="bg-cricket-green hover:bg-cricket-green/90"
+        >
+          Login / Register
         </Button>
       </div>
     );

@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { mockPlayers, mockTeams } from '@/data/mockPlayers';
@@ -9,6 +10,9 @@ import { Player, Team } from '@/types';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auction = () => {
   const [teams, setTeams] = useState(mockTeams);
@@ -16,6 +20,17 @@ const Auction = () => {
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [activeTeamIndex, setActiveTeamIndex] = useState(0);
   const [auctionStarted, setAuctionStarted] = useState(false);
+  const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  
+  const { authState } = useAuth();
+  const { isAuthenticated, user } = authState;
+  const navigate = useNavigate();
+  
+  // Find user's team if they are a team owner
+  const userTeam = isAuthenticated && user?.role === 'team-owner' 
+    ? teams.find(team => team.id === user.teamId) 
+    : null;
   
   const startAuction = () => {
     if (availablePlayers.length === 0) {
@@ -27,9 +42,61 @@ const Auction = () => {
       return;
     }
     
+    // Check if user is authenticated as team owner
+    if (!isAuthenticated || user?.role !== 'team-owner') {
+      toast({
+        title: "Authentication required",
+        description: "Please login as a team owner to participate in the auction.",
+        variant: "destructive",
+      });
+      setTimeout(() => navigate('/auth'), 2000);
+      return;
+    }
+    
+    // Check if user has a team
+    if (!userTeam) {
+      toast({
+        title: "Team required",
+        description: "Please create your team first to join the auction.",
+      });
+      setIsCreateTeamDialogOpen(true);
+      return;
+    }
+    
     setCurrentPlayer(availablePlayers[0]);
     setActiveTeamIndex(0);
     setAuctionStarted(true);
+  };
+  
+  const handleCreateTeam = () => {
+    if (!newTeamName.trim()) return;
+    
+    if (!isAuthenticated || user?.role !== 'team-owner') {
+      toast({
+        title: "Authentication required",
+        description: "Please login as a team owner to create a team.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    
+    const newTeam: Team = {
+      id: user.id, // Use user ID as team ID
+      name: newTeamName.trim(),
+      budget: 8000000,
+      maxPlayers: 18,
+      players: []
+    };
+    
+    setTeams([...teams, newTeam]);
+    setNewTeamName('');
+    setIsCreateTeamDialogOpen(false);
+    
+    toast({
+      title: "Team created successfully",
+      description: `${newTeamName} has been registered for the auction.`,
+    });
   };
   
   const handleNextPlayer = () => {
@@ -59,9 +126,6 @@ const Auction = () => {
   };
 
   const handlePlayerSold = (player: Player, teamId: string, finalBid: number) => {
-    // In a real app with a backend, this would be handled differently
-    // For this demo, we'll update our state directly
-    
     // Update the player's price with the final bid
     const updatedPlayer = { ...player, basePrice: finalBid };
     
@@ -115,14 +179,38 @@ const Auction = () => {
                   {availablePlayers.length} players available for bidding
                 </CardDescription>
               </CardHeader>
-              <div className="p-6">
-                <Button 
-                  size="lg" 
-                  className="bg-cricket-blue text-white"
-                  onClick={startAuction}
-                >
-                  Start Auction
-                </Button>
+              <div className="p-6 space-y-4">
+                {!isAuthenticated || user?.role !== 'team-owner' ? (
+                  <>
+                    <p className="text-amber-600">You need to be logged in as a team owner to participate in the auction.</p>
+                    <Button 
+                      size="lg" 
+                      className="bg-cricket-blue text-white"
+                      onClick={() => navigate('/auth')}
+                    >
+                      Login / Register
+                    </Button>
+                  </>
+                ) : !userTeam ? (
+                  <>
+                    <p className="text-amber-600">You need to create a team first to join the auction.</p>
+                    <Button 
+                      size="lg" 
+                      className="bg-cricket-green text-white"
+                      onClick={() => setIsCreateTeamDialogOpen(true)}
+                    >
+                      Create Your Team
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    size="lg" 
+                    className="bg-cricket-blue text-white"
+                    onClick={startAuction}
+                  >
+                    Start Auction
+                  </Button>
+                )}
               </div>
             </Card>
             
@@ -136,7 +224,7 @@ const Auction = () => {
               <div className="p-6 space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="bg-cricket-blue/10 text-cricket-blue rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0">1</div>
-                  <p>Any registered team can bid on available players</p>
+                  <p>Create a team as a team owner to participate</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="bg-cricket-blue/10 text-cricket-blue rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0">2</div>
@@ -177,6 +265,38 @@ const Auction = () => {
             )}
           </>
         )}
+        
+        {/* Create Team Dialog */}
+        <Dialog open={isCreateTeamDialogOpen} onOpenChange={setIsCreateTeamDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Your Team</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="teamName" className="text-sm font-medium">
+                  Team Name
+                </label>
+                <Input 
+                  id="teamName"
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  placeholder="Enter team name..."
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateTeamDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateTeam} className="bg-cricket-blue text-white">
+                Create Team
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
       <Footer />
     </div>
